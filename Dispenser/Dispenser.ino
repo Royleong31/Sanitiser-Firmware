@@ -2,10 +2,10 @@
 #include <SPI.h>
 #include <LoRa.h>
 
-const int ledPin = 3;
+const int motorPin = 6;
 const int buttonPin = 2;
 const int unitNum = 1;
-const String userId = "12345678";
+const String userId = "qRS23CdKI7QNwPp1LdtA2JaTYpI2";
 const String dispenserId = "qwerty";
 
 void setup()
@@ -53,11 +53,11 @@ void interruptFunction()
 {
   Serial.println("Hand detected!"); //A7 is the ir transistor
 
-  digitalWrite(6, HIGH);
-  for (int i=0; i < 150; i++) {
+  digitalWrite(motorPin, HIGH);
+  for (int i=0; i < 120; i++) {
     Serial.println(i);
   }
-  digitalWrite(6, LOW);
+  digitalWrite(motorPin, LOW);
 
   Serial.println("Sending dispenser info");
   LoRa.beginPacket();
@@ -70,7 +70,7 @@ void interruptFunction()
   Serial.println("Sent dispenser info");
 
   Serial.println(analogRead(A7));
-  while (analogRead(A7) > 800)
+  while (analogRead(A7) > 900)
   {
     Serial.println("Hand is too near");
     Serial.println(analogRead(A7));

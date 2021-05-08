@@ -2,7 +2,6 @@
 #include <LoRa.h>
 #include <WiFi.h> 
 #include <HTTPClient.h>
-//#include <HttpClient.h>
 #include <ArduinoJson.h>
 
 //define the pins used by the transceiver module        FOR ESP32 ONLY
