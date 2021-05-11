@@ -9,14 +9,14 @@ const String dispenserId = "23456789";
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-// const char* ssid = "Roy's Wifi";
-// const char* password = "qpoe1242";
+const char* ssid = "Roy's Wifi";
+const char* password = "qpoe1242";
  
 //const char* ssid = "3logytech_#03_2.4GHz";
 //const char* ssid = "3logytech2.4";
 
-const char* ssid = "TP-Link_3logytech";
-const char* password = "3logytech1928";
+// const char* ssid = "TP-Link_3logytech";
+// const char* password = "3logytech1928";
 
 String buffer[1000];
 int APIcounter = 0;
@@ -40,9 +40,9 @@ void setBuffer(String typeOfUsage) {
     buffer[packetCounter] = typeOfUsage;  // usage/reset
   }
 
-  for (int i=0; i<10; i++) {
-    Serial.println("Buffer row: " + String(i) + "      Value: " + buffer[i]);
-  }
+  // for (int i=0; i<10; i++) {
+  //   Serial.println("Buffer row: " + String(i) + "      Value: " + buffer[i]);
+  // }
 
   if (packetCounter < 999) {
     packetCounter++;
@@ -152,9 +152,9 @@ void Task1code( void * pvParameters ){
 
 void Task2code( void * pvParameters ) {
   while (true) {
-    Serial.println("Sensor Reading: " + String(analogRead(irSensor)));
-    Serial.println("Button Reading: " + String(digitalRead(buttonPin)));
-    delay(1000);
+    // Serial.println("Sensor Reading: " + String(analogRead(irSensor)));
+    // Serial.println("Button Reading: " + String(digitalRead(buttonPin)));
+    // delay(1000);
 
     // Button is pressed when digitalRead(buttonPin) == 0
     if (digitalRead(buttonPin) == 0) {
