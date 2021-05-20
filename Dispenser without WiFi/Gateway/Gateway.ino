@@ -8,23 +8,30 @@
 #define ss 5
 #define rst 14
 #define dio0 2
-
-// const char* ssid = "Roy's Wifi";
-// const char* password = "qpoe1242";
  
-//const char* ssid = "3logytech_#03_2.4GHz";
-//const char* ssid = "3logytech2.4";
+// Insert WiFi name and password
+const char* ssid = "";
+const char* password = "";
 
-const char* ssid = "TP-Link_3logytech";
-const char* password = "3logytech1928";
-
+// 2D array that stores LoRa packets from dispensers
+// Each 'row' (the one with [1000]) stores the information from each packet
+// Each 'column' (the one with [3]) stores the information from each packet
+// As each packet has 3 types of information (companyId, dispenserId, typeOfUsage), this allows the system to store data from 1000 packets
+// The buffer functions as a queue, with incoming requests starting from the back of the queue
 String buffer[1000][3];
+
+// APIcounter stores the position of the current API request
 int APIcounter = 0;
+
+// packetCounter stores the position of the spot that will be used for the incoming LoRa packet
 int packetCounter = 0;
+
+// APIcounter will 'follow' packetCounter as the packetCounter adds data into the buffer(as data is received from dispensers) and APIcounter removes data from the buffer(as API requests are made successfully)
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
+  // Restarts the counter when the counter reaches the end of the queue
 void resetBuffer() {
   buffer[APIcounter][0] = buffer[APIcounter][1] = buffer[APIcounter][2] = "";
 
@@ -48,13 +55,11 @@ void setup() {
     Serial.println(".");
     (500);
   }
+
+  // Setting the spreading factor and coding rate of LoRa helps to increase the range (look at <LoRa.h> library docs on github for more details)
   LoRa.setSpreadingFactor(12);
-//  LoRa.setSignalBandwidth(41.7E3);
   LoRa.setCodingRate4(8);
 
-  // The sync word assures you don't get LoRa messages from other LoRa transceivers
-  // ranges from 0-0xFF
-//  LoRa.setSyncWord(0xF3);
   Serial.println("LoRa Initializing OK!");
 
   WiFi.begin(ssid, password);
@@ -92,6 +97,7 @@ void setup() {
 
 
 void Task1code( void * pvParameters ){
+  // Details are similar to the Dispenser with WiFi file
   int numOfTimesTried = 0;
   while (true) {
    if (WiFi.status() == WL_CONNECTED) {
@@ -106,13 +112,11 @@ void Task1code( void * pvParameters ){
 
         if (typeOfUsage == "usage") {
           client.begin("https://us-central1-hand-sanitiser-c33d1.cloudfunctions.net/usage/" + userId + '/' + dispenserId + "/usage");
-//          client.begin("https://v2.jokeapi.dev/joke/Any");
         } else if (typeOfUsage == "reset") {
           client.begin("https://us-central1-hand-sanitiser-c33d1.cloudfunctions.net/usage/" + userId + '/' + dispenserId + "/reset");
         }
    
         int httpCode = client.PATCH(jsonOutput);
-//         int httpCode = client.GET();
          Serial.println("Time that posting API needs to execute: " + String(millis() - apiStart));
         
         if (httpCode == 200) {
@@ -122,7 +126,6 @@ void Task1code( void * pvParameters ){
           client.end();
 
           resetBuffer();
-          
           
         } else {
           numOfTimesTried++;
@@ -150,7 +153,9 @@ void Task1code( void * pvParameters ){
 
 void Task2code( void * pvParameters ){
   while (true) {
+    // Variables to store the data from incoming LoRa packets
     String LoRaData;
+    // Array of 3 strings as the LoRa packet has 3 types of info (companyId, dispenserId, typeOfUsage)
     String currentPacketData[3] = {"", "", ""};
 
     //try to parse packet
@@ -161,10 +166,9 @@ void Task2code( void * pvParameters ){
   
       //read packet
       while (LoRa.available()) {
+        // add the LoraData to the buffer array
         LoRaData = LoRa.readString();
         Serial.print(LoRaData);
-  
-        // add the LoraData to the buffer array
       }
   
       //print RSSI of packet
@@ -175,15 +179,17 @@ void Task2code( void * pvParameters ){
       int arrayCounter = 0;
       
       for (int i=0; i<LoRaData.length(); i++) {
+        // Write the data into the currentPacketData array        
         if (LoRaData[i] != ' ') {
           currentPacketData[arrayCounter] += LoRaData[i];
+
+        // Each component in the LoRaData is separated by a space(' '), so this helps to seperate the data into the 3 elements in currentPacketData
         } else {
           arrayCounter++;
         }
-
       }
 
-
+      // Prints out the data from the incoming packet
       for (int i=0; i<3; i++) {
         Serial.print(currentPacketData[i]);
         Serial.println("|");
@@ -191,20 +197,12 @@ void Task2code( void * pvParameters ){
   
   //    ADD THE DATA TO THE BUFFER
       if (buffer[packetCounter][0] == "") {
-        buffer[packetCounter][0] = currentPacketData[0];      // userId
+        buffer[packetCounter][0] = currentPacketData[0];      // companyId
         buffer[packetCounter][1] = currentPacketData[1];      // dispenserId
         buffer[packetCounter][2] = currentPacketData[2];      // usage/reset
       }
-  
-//      for (int i=0; i<10; i++) {
-//        Serial.print("Buffer row" + String(i) + "      ");
-//        Serial.print(buffer[i][0]);
-//        Serial.print("     ");
-//        Serial.print(buffer[i][1]);
-//        Serial.print("     ");
-//        Serial.println(buffer[i][2]);
-//      }
 
+      // Restarts the counter when the counter reaches the end of the queue
       if (packetCounter < 999) {
         packetCounter++;
       } else {

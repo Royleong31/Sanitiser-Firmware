@@ -8,23 +8,24 @@ const String dispenserId = "23456789";
 #include <WiFi.h> 
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-
-const char* ssid = "Roy's Wifi";
-const char* password = "qpoe1242";
  
-//const char* ssid = "3logytech_#03_2.4GHz";
-//const char* ssid = "3logytech2.4";
+// Insert WiFi name and password
+const char* ssid = ""; 
+const char* password = "";
 
-// const char* ssid = "TP-Link_3logytech";
-// const char* password = "3logytech1928";
-
+// This buffer stores reset/usage data regarding the dispenser.
+// It functions as a queue data structure, with the API of the oldest usage sent before the data of newer usages. (First in, first out principle)
 String buffer[1000];
+
+// APIcounter stores the position of the current API request
 int APIcounter = 0;
+// packetCounter stores the position of the spot that will be used for the incoming LoRa packet
 int packetCounter = 0;
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
+// Function is to reset the buffer after it is used
 void resetBuffer() {
   buffer[APIcounter] = "";
 
@@ -35,14 +36,11 @@ void resetBuffer() {
   }
 }
 
+// Insert info regarding the type of usage (reset/usage) into the buffer array
 void setBuffer(String typeOfUsage) {
   if (buffer[packetCounter] == "") {
-    buffer[packetCounter] = typeOfUsage;  // usage/reset
+    buffer[packetCounter] = typeOfUsage;
   }
-
-  // for (int i=0; i<10; i++) {
-  //   Serial.println("Buffer row: " + String(i) + "      Value: " + buffer[i]);
-  // }
 
   if (packetCounter < 999) {
     packetCounter++;
@@ -94,28 +92,33 @@ void setup() {
 
 
 void Task1code( void * pvParameters ){
+
+  // This indicates the number of times the api request has tried and failed. If it exceeds 4, stop trying to send the request, and instead skip to the next request
   int numOfTimesTried = 0;
   while (true) {
+  //  If connected to wifi
    if (WiFi.status() == WL_CONNECTED) {
+      // If there is an api request in the queue, and the same request has not failed for more than 4 times,
       if (buffer[APIcounter] != "" && numOfTimesTried < 4) {
         Serial.println("Starting api send");
+
+        // Count the amount of time it takes to send the api request
         const int apiStart = millis();
         HTTPClient client;
         char jsonOutput[128];
         String typeOfUsage = buffer[APIcounter];
 
+        // 2 types of API request, usage(when dispenser was used), and reset(when dispenser was reset with the use of the button)
         if (typeOfUsage == "usage") {
           client.begin("https://us-central1-hand-sanitiser-c33d1.cloudfunctions.net/usage/" + companyId + "/" + dispenserId + "/usage");
-        //  client.begin("https://v2.jokeapi.dev/joke/Any");
         } else if (typeOfUsage == "reset") {
           client.begin("https://us-central1-hand-sanitiser-c33d1.cloudfunctions.net/usage/" + companyId + "/" + dispenserId + "/reset");
-          // client.begin("https://api.kanye.rest/");
         }
    
-        int httpCode = client.PATCH(jsonOutput);
-        // int httpCode = client.GET();
+        int httpCode = client.PATCH(jsonOutput); // Request type is patch (look at API documentation)
          Serial.println("Time that posting API needs to execute: " + String(millis() - apiStart));
         
+        // If API request is successful
         if (httpCode == 200) {
           String payload = client.getString();
           Serial.println("\nStatuscode: " + String(httpCode));
@@ -124,27 +127,28 @@ void Task1code( void * pvParameters ){
           numOfTimesTried = 0;
           resetBuffer();
           
-          
         } else {
           numOfTimesTried++;
           Serial.println("Error on HTTP request");
           Serial.println("Error Code " + String(httpCode));
         } 
         
+        // If the API request has failed for more than 4 times, move on to the next request
       } else if (numOfTimesTried >= 4) {
         numOfTimesTried = 0;
         resetBuffer();
       }
-    }
-    
-    else {
+
+    } else {
+        // If connection is lost, attempt to reconnect to network      
         Serial.println("Connection lost"); 
         WiFi.disconnect();
         WiFi.begin(ssid, password);
         delay(3000);
+        
        if (WiFi.status() == WL_CONNECTED) {
         Serial.println("Device reconnected to WiFi");
-       }
+        }
        }
       delay(100);
     } 
@@ -152,11 +156,7 @@ void Task1code( void * pvParameters ){
 
 void Task2code( void * pvParameters ) {
   while (true) {
-    // Serial.println("Sensor Reading: " + String(analogRead(irSensor)));
-    // Serial.println("Button Reading: " + String(digitalRead(buttonPin)));
-    // delay(1000);
-
-    // Button is pressed when digitalRead(buttonPin) == 0
+    // When reset button is pressed, the value of digitalRead(buttonPin) == 0
     if (digitalRead(buttonPin) == 0) {
       setBuffer("reset");
       Serial.println("Reset button was pressed");
@@ -165,18 +165,22 @@ void Task2code( void * pvParameters ) {
     }
 
     delay(100);
-    if (analogRead(irSensor) < 3000) {
+
+    // Turn on the motor to dispense the hand sanitiser solution
+    if (analogRead(irSensor) < 3200) {
       digitalWrite(motorPin, HIGH);
       delay(300);
       digitalWrite(motorPin, LOW);
 
       setBuffer("usage");
 
-      while(analogRead(irSensor) < 2800) {
+      // If hand is too close, dont dispense again (this is to prevent double dispensing)
+      while(analogRead(irSensor) < 3200) {
         Serial.println("Hand is too close");
         Serial.println(analogRead(irSensor));
         delay(100);
       }
+      delay(800);
     }
     else {
       digitalWrite(motorPin, LOW);
