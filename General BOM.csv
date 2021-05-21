@@ -1,0 +1,40 @@
+,,,,
+,,,,
+,,,,
+,Quantity,Manufacturer,Manufacturer Part Number,Note
+,2,AVX Corporation,0603YA220KAT2A,CAP CER 22PF 16V NP0 0603
+,7,KEMET,C0603C104Z3VACTU,CAP CER 0.1UF 25V Y5V 0603
+,1,Samsung Electro-Mechanics,CL10X106MO8NRNC,10µF ±20% 16V Ceramic Capacitor X6S 0603 (1608 Metric)
+,1,Murata Electronics,GRM188R60J476ME15D,CAP CER 47UF 6.3V X5R 0603
+,1,Bourns Inc.,TC33X-2-504E,TRIMMER 500K OHM 0.1W J LEAD TOP
+,1,Yageo,RC0603FR-07330KL,RES SMD 330K OHM 1% 1/10W 0603
+,1,Yageo,AC0603JR-0722KL,RES SMD 22K OHM 5% 1/10W 0603
+,1,Stackpole Electronics Inc,RMCF0603JJ1K00,RES 1K OHM 5% 1/10W 0603
+,1,MICROCHIP TECH,ATMEGA328-AU,Buy from: https://www.digipart.com/part/ATMEGA328-AU
+,1,STMicroelectronics,TS393CDT,	IC COMPARATOR DUAL MCRPWR 8-SOIC
+,1,Kyocera International Inc. Electronic Components,CX3225GB16000D0HPQCC,16MHz ±20ppm Crystal 8pF 80 Ohms 4-SMD
+,1,Vishay Dale,D55342H07B4B50RWS,4.5k Ohm Resistor
+,,https://www.alibaba.com/product-detail/310-Mini-Peristaltic-Small-Electric-Water_1600059520516.html?spm=a2756.order-detail-ta-ta-b.0.0.4c932fc2PTgc67,,Alternate motor
+,1,https://www.aliexpress.com/item/4001286693357.html?spm=a2g0s.9042311.0.0.9ebd4c4d33xxlZ,,Motor 
+,1,Vishay Dale,CRCW0805400KJNTA,400k Ohm Resistor
+,1,"https://www.aliexpress.com/item/32910242359.html?spm=a2g0o.productlist.0.0.4ec2756acGvOmZ&algo_pvid=08620734-b9b1-4b4f-ba06-073997c139f6&algo_expid=08620734-b9b1-4b4f-ba06-073997c139f6-6&btsid=0bb0600116118950171383852ef204&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_",,SX1278 LoRa Module
+,1,Infineon Technologies,IRLML2803TRPBF,N-channel MOSFET
+,1,Casing,,Need to manufacture ourselves
+,1,ourpcb.com,,Printed Circuit Board: Already have 1 design but may need to change design
+,1,https://shopee.sg/50pairs-3mm-940nm-LEDs-infrared-emitter-and-IR-receiver-diodes-EACH-50PCS-i.56539845.1525606581,,IR led (3mm)
+,1,,,IR Phototransistor (3mm)
+,0.2m,Silicone 0.6mm piping,,
+,1,Omron Electronics,B3F-1020,Button
+,1,Microchip,MCP1825ST-3302E/DB,Low Dropout Voltage Regulator
+,1,Need to source for 1,,DC-DC converter (~6V to 3.5V)
+,1,,,4x AA battery holder
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,Hand Sanitiser Gateway,,,
+,Name,Quantity,,
+,SX1278 LoRa Module,1,same as the LoRa module above,
+,ESP32,1,,
+,Casing,1,,

@@ -10,6 +10,12 @@
 - Queues are a form of data structure that follow the First In First Out principle
 
 ---------------------------------------------------------------------------------
+Bill of materials
+- Most of the components, such as the capacitors and resistors do not need to be exactly the same as the one stated in the BOM as they can be replaced with others with similar values
+- Some components may need to be replaced or added
+- If you have any questions regarding the electronics, you can approach Yu Jing
+
+---------------------------------------------------------------------------------
 
 Dispenser without WiFi
 - The gateway and dispenser communicate via LoRa, a long range radio protocol.
@@ -26,16 +32,21 @@ Dispenser without WiFi
     - The input voltage (6V) is converted to 3.3V-3.6V via a DC-DC converter or a LDO regulator 
     - A voltage of 3.3V-3.6V is used as that is the required voltage for the MOSFET to work properly (MOSFET is unreliable when GPIO voltage is too low).
     - The DC-DC converter or LDO will output 3.3V-3.6V into the chip and LoRa module. The maximum GPIO voltage of the chip to be the same as the input voltage of the chip
+    - Battery level indicator:
+        - 2x500k Ohm resistors form a potential divider circuit between the input power source from the 4x AA batteries and ground.
+        - The junction in between the 2 resistors is connected to an analog pin of the ATMEGA. This allows the ATMEGA to measure the input voltage of the batteries. Using a voltage drop curve of AA batteries, the remaining battery life of the batteries can be calculated. 
     - IR sensor:
-        a) IR led: Connected to resistor in series to ground and the 3.3V-3.6V supply from the DC-DC converter
-        b) IR phototransistor: Connected to a high resistance pull up resistor. Voltage in between resistor and phototransistor is connected to an analog pin of the ATMEGA as well as a pin on the comparator
+        a) IR led: Connected to resistor (~3500 Ohms)  in series to ground and the 3.3V-3.6V supply from the DC-DC converter
+        b) IR phototransistor: Connected to a high resistance (~300k Ohms) pull up resistor. Voltage in between resistor and phototransistor is connected to an analog pin of the ATMEGA as well as a pin on the comparator
     - Motor pins:
         a) Positive end is connected to the AA batteries
         b) Negative end is connected to the drain of the motor
     - MOSFET pins: 
-        a) Gate leg is connected to GPIO pin of ATMEGA
+        a) Gate is connected to GPIO pin of ATMEGA
         b) Drain is connected to the negative pin of the motor
         c) Source is connected to ground
+    - LoRa module
+        a) The RST, NSS, MOSI, MISO pins go to the corresponding pins on the LoRa module.
     
     ~ Dispensing procedure
     - When hand is placed below the IR sensor, the voltage across the IR phototransistor will vary. This produces an analog voltage signal that is converted to a digital signal by the comparator.
@@ -74,7 +85,7 @@ Dispenser with WiFi
 - The dispenser will be connected to WiFi and plugged into a wall power supply.
 - Both of the cores on the ESP32 are used simultaneously, 1 for detecting hand near the IR sensor and another for sending APIs to the server.
 - It is similar to the system without WiFi, just without the LoRa part. 
-- There is no PCB yet, just an ESP32, resistors, MOSFET and motor mounted on a donut board.
+- There is no PCB yet, just an ESP32, resistors, MOSFET, IR led, IR phototransistor and motor mounted on a donut board.
 - As the dispenser and company IDs are unique to the dispenser, the buffer array is only 1 dimensional, instead of 2 dimensional like in the gateway above. (dispenserId and companyId are stored as global variables in the code)
 
 ~ Upon detecting a hand
@@ -88,3 +99,12 @@ Dispenser with WiFi
 ~ Procedure of sending APIs to the server
 - When there is a packet of data to be sent, the API will send the data with the companyId, dispenserId and the type of usage.
 - API counter, which stores the position of the data of the last sent API, will increase.
+
+
+---------------------------------------------------------------------------------
+Potential Improvements
+- The battery life of the hand sanitiser dispenser could be improved. The battery consumption of the chip is only about 0.15mA, however, the IR sensor consumes a significant amount of power (up to 4mA) as it is always on. The best way to improve battery life is to reduce the power consumption of the IR led.
+- There is often packet loss or packet corruption when data is transfered from the dispenser to the gateway, resulting in inaccurate data. This could be improved by implementing a handshake algorithm between dispenser an gateway in order to ensure that messages are reliably transfered. 
+- The old PCB that I am using works, but there are a couple of errors regarding the IR sensor as the designer forgot to include it. Therefore, I have ordered a new one. 
+- Alerts can be sent to users when the battery is running out. When the battery is running low, the dispenser can send a LoRa packet to the gateway to update the database.
+- A PCB should be made for the dispenser with WiFi. All the components and ESP32 chip can be put directly on the PCB.
