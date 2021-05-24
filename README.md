@@ -42,17 +42,17 @@ Dispenser without WiFi
             - 100%: 6V
 
     - IR sensor:
-        a) IR led: Connected to resistor (~3500 Ohms)  in series to ground and the 3.3V-3.6V supply from the DC-DC converter
-        b) IR phototransistor: Connected to a high resistance (~300k Ohms) pull up resistor. Voltage in between resistor and phototransistor is connected to an analog pin of the ATMEGA as well as a pin on the comparator
+        - IR led: Connected to resistor (~3500 Ohms)  in series to ground and the 3.3V-3.6V supply from the DC-DC converter
+        - IR phototransistor: Connected to a high resistance (~300k Ohms) pull up resistor. Voltage in between resistor and phototransistor is connected to an analog pin of the ATMEGA as well as a pin on the comparator
     - Motor pins:
-        a) Positive end is connected to the AA batteries
-        b) Negative end is connected to the drain of the MOSFET
+        - Positive end is connected to the AA batteries
+        - Negative end is connected to the drain of the MOSFET
     - MOSFET pins: 
-        a) Gate is connected to GPIO pin of ATMEGA. Gate needs to be pulled low to ground.
-        b) Drain is connected to the negative pin of the motor
-        c) Source is connected to ground
+        - Gate is connected to GPIO pin of ATMEGA. Gate needs to be pulled low to ground.
+        - Drain is connected to the negative pin of the motor
+        - Source is connected to ground
     - LoRa module
-        a) The RST, NSS, MOSI, MISO pins go to the corresponding pins on the LoRa module.
+        - The RST, NSS, MOSI, MISO pins go to the corresponding pins on the LoRa module.
     
     ~ Dispensing procedure
     - When hand is placed below the IR sensor, the voltage across the IR phototransistor will vary. This produces an analog voltage signal that is converted to a digital signal by the comparator.
