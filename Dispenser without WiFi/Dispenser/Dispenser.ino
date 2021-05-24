@@ -139,3 +139,10 @@ void buttonInterrupt()
   detachInterrupt(0);
   LoRa.sleep();
 }
+
+// Add this to the code to get the battery level
+// <inputVoltage> is the voltage to chip from DC-DC converter
+// analog pin A4 is connected to the potential divider that the raw battery voltage is connected to
+// 1023 is used as ATMEGA reads analog readings in 10 bit resolution, so from 0 to 1023
+//  Times 2 to get actual battery voltage
+// float batteryLevel = analogRead(A4) / 1023 * <inputVoltage> * 2;

@@ -2,16 +2,15 @@
 - The purpose is to solve the problem of cleaning staff not knowing when the refills of their hand sanitiser dispensers are running out.
 - This system aims to alert the users when their dispensers are running out.
 - The app will send alert notifications to users to alert them (more information about the hand sanitiser can be found in the hand sanitiser app folder README)
-- The app and the firmware for the dispensers and gateway are connected by the Hand Sanitiser API (more info can be found in that folder)
+- The app and the firmware for the dispensers and gateway are connected by the Hand Sanitiser backend (more info can be found in that folder)
 - There are 2 versions of this system: 
     1) Dispenser with WiFi (this requires the dispenser to be connected to WiFi and plugged into a power supply)
-    2) Dispenser without WiFi (this requires the gateway to be connected to WiFi and power supply, but the dispenser is battery operated and does not require a WiFi connection)
-- The buffers in the Gateway and Dispenser with WiFi function as circular queues, with the data to be sent being queued and when the data is sent by the API successfully, the data is dequeued (removed from the queue)
+    2) Dispenser without WiFi (this requires the gateway to be connected to WiFi and power supply, but the dispenser is battery operated and does not require a WiFi connection, but not more than 50-100m away from gateway)
+- The buffers in the Gateway and Dispenser with WiFi function as circular queues, with the data to be sent being queued (added to the queue). When the data is sent by the API successfully, the data is dequeued (removed from the queue)
 - Queues are a form of data structure that follow the First In First Out principle
 
 ---------------------------------------------------------------------------------
 Bill of materials
-- Most of the components, such as the capacitors and resistors do not need to be exactly the same as the one stated in the BOM as they can be replaced with others with similar values
 - Some components may need to be replaced or added
 - If you have any questions regarding the electronics, you can approach Yu Jing
 
@@ -35,14 +34,21 @@ Dispenser without WiFi
     - Battery level indicator:
         - 2x500k Ohm resistors form a potential divider circuit between the input power source from the 4x AA batteries and ground.
         - The junction in between the 2 resistors is connected to an analog pin of the ATMEGA. This allows the ATMEGA to measure the input voltage of the batteries. Using a voltage drop curve of AA batteries, the remaining battery life of the batteries can be calculated. 
+        - Approximate battery voltages at different battery levels
+            - 0%: 3.4V
+            - 25%: 4.32V
+            - 50%: 4.72V
+            - 75%: 5.2V
+            - 100%: 6V
+
     - IR sensor:
         a) IR led: Connected to resistor (~3500 Ohms)  in series to ground and the 3.3V-3.6V supply from the DC-DC converter
         b) IR phototransistor: Connected to a high resistance (~300k Ohms) pull up resistor. Voltage in between resistor and phototransistor is connected to an analog pin of the ATMEGA as well as a pin on the comparator
     - Motor pins:
         a) Positive end is connected to the AA batteries
-        b) Negative end is connected to the drain of the motor
+        b) Negative end is connected to the drain of the MOSFET
     - MOSFET pins: 
-        a) Gate is connected to GPIO pin of ATMEGA
+        a) Gate is connected to GPIO pin of ATMEGA. Gate needs to be pulled low to ground.
         b) Drain is connected to the negative pin of the motor
         c) Source is connected to ground
     - LoRa module
@@ -61,6 +67,13 @@ Dispenser without WiFi
     - The chip will then send 2 LoRa packets to the gateway, informing it that the dispenser has been reset.
     - LoRa packet: companyId + ' ' + dispenserId + ' ' + 'reset'
     - When the button is released, the chip will go back to sleep.
+
+    ~ Battery reading
+    - As a 50% potential divider is used (junction is in between 2 500k Ohm resistors), the reading will be half of the raw voltage. 
+    - Formula: 
+        - Raw battery voltage = analogReading/1023 * (input voltage to ATMEGA) * 2
+        - input voltage to ATMEGA is the input voltage to the ATMEGA from the DC-DC converter (usually abt 3.5V). This forms the reference voltage of the chip. 
+        - Voltage of the junction in between the 2 potentiometers is half of the actual voltage, thus, you will need to multiply the voltage by 2 to get the actual voltage across the batteries
     
  2) Gateway
     - The gateway uses an ESP32 board as the microcontroller
@@ -108,3 +121,32 @@ Potential Improvements
 - The old PCB that I am using works, but there are a couple of errors regarding the IR sensor as the designer forgot to include it. Therefore, I have ordered a new one. 
 - Alerts can be sent to users when the battery is running out. When the battery is running low, the dispenser can send a LoRa packet to the gateway to update the database.
 - A PCB should be made for the dispenser with WiFi. All the components and ESP32 chip can be put directly on the PCB.
+
+-----------------------------------------------------------------------------------
+Summary
+- Active IR sensors have 2 components: the IR led and IR phototransistor. IR led is always on as it is the IR emitter. The IR phototransistor is the IR receiver. So when a hand is placed near the sensor, IR light from the IR led will bounce off the hand and reach the IR phototransistor. This causes the resistance of the IR phototransistor to drop, leading to a drop in potential difference, which can be read by a comparator or analog pin of ATMEGA.
+
+- Dispenser with WiFi: 
+    - Detecting Hand: IR sensor read by analog in => add data to buffer
+    - Reset button pressed: Button press detected by digital pin => add data to buffer
+    - When data in buffer: Send API request => if successful => clear data from buffer
+    - This system is more reliable as it is much simpler than the one without wifi
+
+- Dispenser without WiFi
+    - Dispenser: 
+        - Detecting Hand: IR sensor reading read by comparator => wake up chip => chip sends LoRa packet => chip goes back to sleep
+        - Reset Button pressed: Change is detected by wake up pin => Chip wakes up => chip sends 2 LoRa packets => chip goes back to sleep
+        - Battery level indicator: Raw voltage of battery with potential divider => analog pin => calculate raw voltage => use the raw voltage of battery to determin battery life
+    - Gateway:
+        - Receiving data: Stores data in 2D array buffer
+        - Sending data: Reads data from buffer and sends API => if successful => clear data from buffer
+
+
+-----------------------------------------------------------------------------------
+Things that you need to do
+- Understand how the system works together
+- Use the new PCB that Yu Jing designed, and integrate the battery level indicator feature (for dispenser without wifi), which is not yet in the code.
+- You will need to manually calibrate the 500k trim pot with a screwdriver
+- Build the casing for the gateway and dispensers. Aaron has designed the casing for the dispenser with wifi and Vaishakh designed the casing for dispenser without wifi. You need to liaise with them and ensure that the casing fits the PCB and all the customer requirements.
+- It's important to improve the power consumption of the IR sensor (for dispenser without wifi). The power consumption of the rest of the components is more or less good enough. The biggest problem is the IR sensor, specifically the IR led.
+- All the best!!!
